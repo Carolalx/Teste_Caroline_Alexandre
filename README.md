@@ -1,63 +1,68 @@
 # 🏥 Teste_ANS – Integração com API Pública da ANS
 
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
-[![GitHub Actions](https://img.shields.io/github/workflow/status/Carolalx/Teste_ANS/Python%20CI)](https://github.com/Carolalx/Teste_ANS/actions)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-10%2B-blue)](https://www.postgresql.org/)
 
-> Implementação das Etapas 1, 2 e 3 do teste técnico da ANS: integração com API pública, normalização, consolidação, validação, enriquecimento, agregação e análise de dados de despesas de operadoras de saúde.
+> Implementação das Etapas 1, 2 e 3 do teste técnico da ANS: integração com API pública, normalização, consolidação, validação, enriquecimento e análise de dados.
 
 ---
 
 ## **📋 Descrição do Projeto**
 
-Este projeto implementa um pipeline de processamento de dados dividido em etapas, conforme solicitado no edital.
+Este projeto implementa um pipeline de processamento de dados (ETL) dividido em três etapas fundamentais:
 
-1. **Integração com API da ANS (Etapa 1)** Download automatizado dos arquivos ZIP referentes aos últimos 3 trimestres disponíveis.  
-   - Extração e normalização dinâmica de colunas (tratando variações como REG_ANS vs RegistroANS).
-   - Consolidação de mais de 2,1 milhões de registros em um único CSV.
+1. **Integração com API da ANS (Etapa 1)**
+   - Download automatizado dos arquivos ZIP referentes aos últimos 3 trimestres disponíveis.
+   - Extração e normalização dinâmica de colunas (tratando variações como `REG_ANS` vs `RegistroANS`).
+   - Consolidação de mais de **2,1 milhões de registros** em um único CSV.
 
 2. **Transformação e Agregação (Etapa 2)**
-    - Enriquecimento:
-        - Cruzamento de dados financeiros com a base cadastral oficial da ANS via RegistroANS.
-    - Saneamento:
-        - Tratamento de escala decimal e valores nulos.
-    - Cálculo Estatístico:
-        - Geração de métricas de Total de Despesas, Média Trimestral e Desvio Padrão por Operadora e UF.
-    - Resultados:
-        - Geração do arquivo despesas_agregadas.csv e compactação final no ZIP solicitado.
+   - **Enriquecimento:** Cruzamento de dados financeiros com a base cadastral oficial da ANS via `RegistroANS`.
+   - **Saneamento:** Tratamento de escala decimal e valores nulos.
+   - **Cálculo Estatístico:** Geração de métricas de Total de Despesas, Média Trimestral e Desvio Padrão por Operadora e UF.
+   - **Resultados:** Geração do arquivo `despesas_agregadas.csv` e compactação final no ZIP solicitado.
 
 3. **Banco de Dados e Análise SQL (Etapa 3)**
-    - Modelagem relacional no PostgreSQL utilizando o modelo Estrela (Star Schema).
-    - Implementação de integridade referencial flexível para comportar inconsistências nativas da fonte (operadoras presentes no financeiro mas ausentes no cadastro de ativas).
-    - Scripts de carga e queries analíticas para insights de mercado.
+   - Modelagem relacional no **PostgreSQL** utilizando o modelo Estrela (*Star Schema*).
+   - Implementação de integridade referencial flexível para comportar inconsistências nativas da fonte.
+   - Scripts de carga e queries analíticas para insights de mercado.
 
 ---
 
 ## **🛠 Tecnologias e Bibliotecas**
 
-- Python 3.12  
-- Bibliotecas: pandas, requests, urllib3, zipfile, io
-- Banco de Dados: PostgreSQL > 10 (via DBeaver/SQL)
-- Modelagem: Relacional com Chaves Estrangeiras (FK)
+- **Linguagem:** Python 3.12
+- **Bibliotecas:** `pandas`, `requests`, `beautifulsoup4`, `urllib3`
+- **Banco de Dados:** PostgreSQL > 10
+- **Modelagem:** Relacional com Chaves Estrangeiras (FK)
 
 ---
 
 ## **📂 Estrutura de Pastas**
 
-Teste_Caroline_Alexandre/ 
-├── venv/
+```text
+Teste_ANS/
+│
 ├── src/
-│   ├── main.py             <-- Etapa 1         
-│   └── transform.py        <-- Etapa 2      
-├── data/
-├── db/                     <-- Etapa 3  
-│   ├── create_tables.sql
-│   ├── load_data.sql
-│   └── analytics.sql
-└── requirements.txt
+│   ├── main.py           # Ingestão (Etapa 1)
+│   ├── transform.py      # Enriquecimento e Agregação (Etapa 2)
+│   └── utils.py          # Funções auxiliares e validações
+│
+├── db/
+│   ├── create_tables.sql # DDL para criação das tabelas
+│   ├── load_data.sql     # Comandos de correção de escala e índices
+│   └── analytics.sql     # Queries analíticas solicitadas
+│
+├── data/                 # Pasta local para armazenamento de CSVs (ignorada pelo Git)
+│
+├── requirements.txt      # Dependências do projeto
+├── .gitignore            # Filtro de arquivos para o repositório
+└── README.md             # Documentação do projeto
+```
 
 ---
 
-## 🚀 Como Executar
+## **🚀 Como Executar**
 
 1. Criar virtual environment:
 
