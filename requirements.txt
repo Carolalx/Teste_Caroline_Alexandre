@@ -1,5 +1,11 @@
-requests>=2.31.0
-pandas>=2.2.0
-beautifulsoup4>=4.12.0
-openpyxl>=3.1.2
-lxml>=4.9.3
+# Bibliotecas para Requisições e Web Scraping
+requests==2.32.3
+beautifulsoup4==4.12.3
+urllib3==2.2.1
+
+# Bibliotecas para Processamento de Dados
+pandas==2.2.2
+numpy==1.26.4
+
+# Dependências para leitura de formatos variados (Etapa 1)
+openpyxl==3.1.2
