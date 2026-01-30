@@ -44,3 +44,64 @@ CREATE TABLE despesas_agregadas (
     MediaTrimestral NUMERIC(18,2),
     DesvioPadrao NUMERIC(18,2)
 );
+
+-- 5. Criação da tabela Normalização
+DROP TABLE IF EXISTS normalizacao CASCADE;
+
+CREATE TABLE normalizacao (
+    id SERIAL PRIMARY KEY,  -- chave única artificial
+    RegistroANS INTEGER,
+    Ano INTEGER,
+    Trimestre VARCHAR(5),
+
+    -- Dados de cadastro
+    CNPJ VARCHAR(20),
+    RazaoSocial TEXT,
+    Modalidade TEXT,
+    UF CHAR(2),
+    Data_Registro_ANS DATE,
+
+    -- Despesas
+    ValorDespesas NUMERIC(18,2),
+
+    -- Estatísticas agregadas
+    TotalDespesas NUMERIC(18,2),
+    MediaTrimestral NUMERIC(18,2),
+    DesvioPadrao NUMERIC(18,2)
+);
+
+--Seleção de dados para normalização
+WITH consolidado_agrupado AS (
+    SELECT 
+        RegistroANS,
+        Ano,
+        Trimestre,
+        SUM(ValorDespesas) AS ValorDespesas  -- soma duplicidades
+    FROM consolidado_despesas
+    GROUP BY RegistroANS, Ano, Trimestre
+)
+INSERT INTO normalizacao (
+    RegistroANS, Ano, Trimestre,
+    CNPJ, RazaoSocial, Modalidade, UF, Data_Registro_ANS,
+    ValorDespesas, TotalDespesas, MediaTrimestral, DesvioPadrao
+)
+SELECT 
+    ca.RegistroANS,
+    ca.Ano,
+    ca.Trimestre,
+    oc.CNPJ,
+    oc.RazaoSocial,
+    oc.Modalidade,
+    oc.UF,
+    oc.Data_Registro_ANS,
+    ca.ValorDespesas,
+    da.TotalDespesas,
+    da.MediaTrimestral,
+    da.DesvioPadrao
+FROM consolidado_agrupado ca
+JOIN operadoras_cadastro oc
+    ON ca.RegistroANS = oc.RegistroANS
+LEFT JOIN despesas_agregadas da
+    ON ca.RegistroANS = da.RegistroANS
+    AND oc.UF = da.UF
+WHERE ca.ValorDespesas <> 0;  -- remove despesas zero

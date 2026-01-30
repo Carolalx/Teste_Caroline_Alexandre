@@ -66,6 +66,8 @@
             padding: 20px;
             border-radius: 5px;
             width: 400px;
+            max-height: 80%;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -84,16 +86,22 @@
                     <th>RegistroANS</th>
                     <th>Razão Social</th>
                     <th>UF</th>
+                    <th>Ano</th>
+                    <th>Trimestre</th>
                     <th>Valor Despesas</th>
+                    <th>Total Por Operadora</th>
                     <th>Detalhes</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="op in operadorasFiltradas" :key="op.RegistroANS">
+                <tr v-for="op in operadorasFiltradas" :key="op.RegistroANS + '-' + op.Ano + '-' + op.Trimestre">
                     <td>{{ op.RegistroANS }}</td>
                     <td>{{ op.RazaoSocial }}</td>
                     <td>{{ op.UF }}</td>
-                    <td>{{ formatCurrency(op.TotalDespesas) }}</td>
+                    <td>{{ op.Ano }}</td>
+                    <td>{{ op.Trimestre }}</td>
+                    <td>{{ formatCurrency(op.ValorDespesas) }}</td>
+                    <td>{{ formatCurrency(op.TotalPorOperadora) }}</td>
                     <td><button @click="abrirDetalhes(op.RegistroANS)">Ver</button></td>
                 </tr>
             </tbody>
@@ -122,8 +130,8 @@
                     <h4>Histórico de Despesas</h4>
                     <ul>
                         <li v-for="(d, index) in historico" :key="index">
-                            Média Trimestral: {{ formatCurrency(d.MediaTrimestral) }}, Desvio: {{
-                            formatCurrency(d.DesvioPadrao) }}
+                            Ano {{ d.Ano }} Trimestre {{ d.Trimestre }}: Valor {{ formatCurrency(d.ValorDespesas) }},
+                            Média {{ formatCurrency(d.MediaTrimestral) }}, Desvio {{ formatCurrency(d.DesvioPadrao) }}
                         </li>
                     </ul>
                 </div>
@@ -153,10 +161,17 @@
                 },
                 operadorasFiltradas() {
                     if (!this.busca) return this.operadoras;
+                    const b = this.busca.toLowerCase();
                     return this.operadoras.filter(op =>
-                        (op.RazaoSocial && op.RazaoSocial.toLowerCase().includes(this.busca.toLowerCase())) ||
-                        (op.RegistroANS && op.RegistroANS.toString().includes(this.busca))
+                        op.RazaoSocial.toLowerCase().includes(b) ||
+                        op.RegistroANS.toString().includes(b)
                     );
+                }
+            },
+            watch: {
+                // Atualiza o gráfico quando a busca muda
+                operadorasFiltradas() {
+                    this.$nextTick(() => this.atualizarGrafico());
                 }
             },
             methods: {
@@ -164,15 +179,54 @@
                     this.loading = true;
                     axios.get(`http://127.0.0.1:8000/api/operadoras?page=${this.paginaAtual}&limit=${this.limite}`)
                         .then(res => {
-                            this.operadoras = res.data.data;
+                            const data = res.data.data;
+
+                            // Somatório por operadora
+                            const totalMap = {};
+                            data.forEach(op => {
+                                if (!totalMap[op.RegistroANS]) totalMap[op.RegistroANS] = 0;
+                                totalMap[op.RegistroANS] += op.ValorDespesas;
+                            });
+                            data.forEach(op => op.TotalPorOperadora = totalMap[op.RegistroANS]);
+
+                            this.operadoras = data;
                             this.total = res.data.total;
                             this.loading = false;
-                            this.criarGrafico();
+
+                            // Inicializa gráfico
+                            this.$nextTick(() => this.atualizarGrafico());
                         })
                         .catch(err => {
                             console.error("Erro ao carregar operadoras:", err);
                             this.loading = false;
                         });
+                },
+                atualizarGrafico() {
+                    const ctx = document.getElementById('graficoUF').getContext('2d');
+                    const dados = {};
+
+                    // Usar dados filtrados
+                    this.operadorasFiltradas.forEach(op => {
+                        if (!op.UF) return;
+                        if (!dados[op.UF]) dados[op.UF] = 0;
+                        dados[op.UF] += Number(op.ValorDespesas);
+                    });
+
+                    if (this.grafico) this.grafico.destroy();
+                    this.grafico = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(dados),
+                            datasets: [{
+                                label: 'Despesas por UF',
+                                data: Object.values(dados),
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: { scales: { y: { beginAtZero: true } } }
+                    });
                 },
                 formatCurrency(valor) {
                     if (valor == null) return "R$ 0,00";
@@ -182,30 +236,6 @@
                     if (n < 1 || n > this.totalPages) return;
                     this.paginaAtual = n;
                     this.carregarOperadoras();
-                },
-                criarGrafico() {
-                    const ctx = document.getElementById('graficoUF').getContext('2d');
-                    const ufMap = {};
-                    this.operadoras.forEach(op => {
-                        if (!op.UF) return;
-                        if (!ufMap[op.UF]) ufMap[op.UF] = 0;
-                        ufMap[op.UF] += Number(op.TotalDespesas) || 0;
-                    });
-                    if (this.grafico) this.grafico.destroy();
-                    this.grafico = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: Object.keys(ufMap),
-                            datasets: [{
-                                label: 'Total de Despesas por UF',
-                                data: Object.values(ufMap),
-                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                                borderColor: 'rgba(54, 162, 235, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: { scales: { y: { beginAtZero: true } } }
-                    });
                 },
                 abrirDetalhes(registro_ans) {
                     axios.get(`http://127.0.0.1:8000/api/operadoras/${registro_ans}`)
@@ -217,9 +247,7 @@
                             this.historico = res.data;
                             this.modalAberto = true;
                         })
-                        .catch(err => {
-                            console.error("Erro ao carregar detalhes:", err);
-                        });
+                        .catch(err => console.error("Erro ao carregar detalhes:", err));
                 }
             },
             mounted() {

@@ -1,46 +1,40 @@
 -- #region 1. Quais as 5 operadoras com maior crescimento percentual (...)
-WITH trimestres AS (
-    -- Obtem o primeiro e o último trimestre disponíveis para cada operadora
+WITH primeiro_ultimo AS (
     SELECT 
         RegistroANS,
+        RazaoSocial,
         MIN(Ano || '-' || Trimestre) AS primeiro_trimestre,
         MAX(Ano || '-' || Trimestre) AS ultimo_trimestre
-    FROM consolidado_despesas
-    GROUP BY RegistroANS
+    FROM normalizacao
+    GROUP BY RegistroANS, RazaoSocial
 ),
-valores_trimestres AS (
-    -- Calcula o total de despesas por trimestre (somando caso haja mais de uma linha)
-    SELECT 
-        cd.RegistroANS,
-        cd.Trimestre,
-        cd.Ano,
-        SUM(cd.ValorDespesas) AS total_despesas
-    FROM consolidado_despesas cd
-    GROUP BY cd.RegistroANS, cd.Ano, cd.Trimestre
-),
-crescimento AS (
-    -- Pega despesas do primeiro e último trimestre e calculamos crescimento percentual
+valores_trimestre AS (
     SELECT
-        t.RegistroANS,
-        oc.RazaoSocial,
-        vt_ini.total_despesas AS despesas_iniciais,
-        vt_fim.total_despesas AS despesas_finais,
-        ((vt_fim.total_despesas - vt_ini.total_despesas) / vt_ini.total_despesas) * 100 AS crescimento_percentual
-    FROM trimestres t
-    JOIN valores_trimestres vt_ini
-        ON t.RegistroANS = vt_ini.RegistroANS
-       AND (vt_ini.Ano || '-' || vt_ini.Trimestre) = t.primeiro_trimestre
-    JOIN valores_trimestres vt_fim
-        ON t.RegistroANS = vt_fim.RegistroANS
-       AND (vt_fim.Ano || '-' || vt_fim.Trimestre) = t.ultimo_trimestre
-    JOIN operadoras_cadastro oc
-        ON t.RegistroANS = oc.RegistroANS
+        RegistroANS,
+        RazaoSocial,
+        ValorDespesas,
+        Ano || '-' || Trimestre AS ano_trimestre
+    FROM normalizacao
 )
--- Selecionamos as 5 operadoras com maior crescimento percentual
-SELECT *
-FROM crescimento
-ORDER BY crescimento_percentual DESC
+SELECT 
+    p.RegistroANS,
+    p.RazaoSocial,
+    v_ini.ValorDespesas AS ValorInicial,
+    v_fim.ValorDespesas AS ValorFinal,
+    ROUND(
+        ((v_fim.ValorDespesas - v_ini.ValorDespesas) / v_ini.ValorDespesas) * 100
+    , 2) AS Crescimento_Percentual
+FROM primeiro_ultimo p
+JOIN valores_trimestre v_ini
+    ON v_ini.RegistroANS = p.RegistroANS 
+    AND v_ini.ano_trimestre = p.primeiro_trimestre
+JOIN valores_trimestre v_fim
+    ON v_fim.RegistroANS = p.RegistroANS 
+    AND v_fim.ano_trimestre = p.ultimo_trimestre
+WHERE v_ini.ValorDespesas <> 0  -- evita divisão por zero
+ORDER BY Crescimento_Percentual DESC
 LIMIT 5;
+
 -- #endregion 
 
 -- #region Distribuição de Despesas po UF
@@ -72,39 +66,27 @@ LIMIT 5;
 -- #endregion
 
 -- #region Operadoras acima da média (ranking)
-WITH cte_media AS (
-    SELECT Ano, Trimestre, AVG(ValorDespesas) AS media_trimestre
-    FROM consolidado_despesas
-    GROUP BY Ano, Trimestre
+WITH media_geral AS (
+    SELECT AVG(ValorDespesas) AS media
+    FROM normalizacao
 ),
-cte_operadora_trimestre AS (
-    SELECT
-        cd.RegistroANS,
-        cd.Ano,
-        cd.Trimestre,
-        SUM(cd.ValorDespesas) AS total_despesas
-    FROM consolidado_despesas cd
-    GROUP BY cd.RegistroANS, cd.Ano, cd.Trimestre
+trimestres_acima AS (
+    SELECT 
+        RegistroANS,
+        RazaoSocial,
+        Ano,
+        Trimestre,
+        CASE WHEN ValorDespesas > (SELECT media FROM media_geral) THEN 1 ELSE 0 END AS acima_media,
+        ValorDespesas
+    FROM normalizacao
 ),
-cte_acima_media AS (
-    SELECT
-        ot.RegistroANS,
-        oc.RazaoSocial,
-        ot.total_despesas,
-        CASE WHEN ot.total_despesas > cm.media_trimestre THEN 1 ELSE 0 END AS acima_media
-    FROM cte_operadora_trimestre ot
-    JOIN cte_media cm
-        ON ot.Ano = cm.Ano AND ot.Trimestre = cm.Trimestre
-    JOIN operadoras_cadastro oc
-        ON ot.RegistroANS = oc.RegistroANS
-),
-cte_count_trimestres AS (
-    SELECT
+contagem_trimestres AS (
+    SELECT 
         RegistroANS,
         RazaoSocial,
         SUM(acima_media) AS trimestres_acima_media,
-        SUM(total_despesas) AS total_despesas_acima_media
-    FROM cte_acima_media
+        SUM(ValorDespesas) AS total_despesas_acima_media
+    FROM trimestres_acima
     GROUP BY RegistroANS, RazaoSocial
 )
 SELECT 
@@ -112,8 +94,10 @@ SELECT
     RazaoSocial,
     trimestres_acima_media,
     total_despesas_acima_media,
-    RANK() OVER (ORDER BY trimestres_acima_media DESC, total_despesas_acima_media DESC) AS ranking
-FROM cte_count_trimestres
-WHERE trimestres_acima_media >= 1
+    RANK() OVER (
+        ORDER BY trimestres_acima_media DESC, total_despesas_acima_media DESC
+    ) AS ranking
+FROM contagem_trimestres
+WHERE trimestres_acima_media >= 2
 ORDER BY ranking;
 -- #endregion

@@ -131,16 +131,16 @@ Testar API
 
 ## ETAPA 4 – API e Frontend
 ``` 
-| Componente                  | Escolha          | Justificativa                                            |
-|------------------------------|-----------------|----------------------------------------------------------|
-| Backend Framework            | FastAPI         | Performance, validação automática, documentação integrada|
-| Paginação                    | Offset-based    | Simples, eficiente para dataset < 2k registros           |
-| Estatísticas                 | Calcular sempre | Dataset pequeno, simplicidade e consistência             |
-| Estrutura de resposta        | Dados + metadados | Facilita frontend e paginação                          |
-| Busca/Filtração              | Cliente         | Resposta instantânea, dataset pequeno                    |
-| Gerenciamento de estado      | Props/Events    | Simples, suficiente para aplicação pequena               |
-| Renderização tabela          | v-for           | Dataset pequeno, sem necessidade de virtual scroll       |
-| Erros/loading/dados vazios   | Mensagens específicas e loading | Melhor UX e feedback claro               |
+| Componente                | Escolha         | Justificativa                                            |
+|---------------------------|-----------------|----------------------------------------------------------|
+| Backend Framework         | FastAPI         | Performance, validação automática, documentação integrada|
+| Paginação                 | Offset-based    | Simples, eficiente para dataset < 2k registros           |
+| Estatísticas              | Calcular sempre | Dataset pequeno, simplicidade e consistência             |
+| Estrutura de resposta     | Dados + metadados | Facilita frontend e paginação                          |
+| Busca/Filtração           | Cliente         | Resposta instantânea, dataset pequeno                    |
+| Gerenciamento de estado   | Props/Events    | Simples, suficiente para aplicação pequena               |
+| Renderização tabela       | v-for           | Dataset pequeno, sem necessidade de virtual scroll       |
+| Erros/loading/dados vazios| Mensagens específicas e loading | Melhor UX e feedback claro               |
 ```
 
 ## 📊 Funcionalidades da Interface Web
@@ -152,6 +152,8 @@ Testar API
     5. Tratamento de erros e loading: mensagens claras e feedback visual.    
 
 ## 📊 Resultados Finais - Querys - Analytics.sql
+    - Optou-se por manter o valor como dado bruto para evitar possiveis conflitos com conversão em moeda ou algo semelhante.
+    
 **1. 5 operadoras com maior crescimento percentual de despesas (...)**
 
     - Identificação do primeiro trimestre e o último trimestre de cada operadora ou do dataset.
@@ -168,13 +170,13 @@ Crescimento (%) =
     - Justificativa: sem dados em algum trimestre, o crescimento percentual não pode ser calculado corretamente.
 
 ```
-| RegistroANS | RazaoSocial                                          | Despesas Iniciais | Despesas Finais   | Crescimento % |
-|------------|-----------------------------------------------------|-----------------|-----------------|---------------|
-| 423521     | EGRÉGORA ADMINISTRADORA DE BENEFICIOS S/A          | 96,000.16       | 29,510,456.87   | 30640.01      |
-| 423882     | PLAMEDH PLANOS DE SAÚDE LTDA                        | 223,267.38      | 14,790,873.93   | 6524.74       |
-| 416410     | SOCIODONTO PLANO DE ASSISTÊNCIA ODONTOLÓGICA LTDA  | 191,989.31      | 2,213,322.37    | 1052.84       |
-| 423327     | CLICSAUDE ADMINISTRADORA DE BENEFICIOS LTDA        | 1,609,987.00    | 10,746,557.64   | 567.49        |
-| 424463     | SAUDE SALV ASSISTENCIA MEDICA LTDA                 | 2,918,774.03    | 18,823,594.97   | 544.91        |
+| RegANS | RazaoSocial                                      | Despesas Iniciais | Despesas Finais | Crescimento % |
+|--------|--------------------------------------------------|-------------------|-----------------|---------------|
+| 423521 | EGRÉGORA ADMINISTRADORA DE BENEFICIOS S/A        | 96,000.16         | 29,510,456.87   | 30640.01      |
+| 423882 | PLAMEDH PLANOS DE SAÚDE LTDA                     | 223,267.38        | 14,790,873.93   | 6524.74       |
+| 416410 | SOCIODONTO PLANO DE ASSISTÊNCIA ODONTOLÓGICA LTDA| 191,989.31        | 2,213,322.37    | 1052.84       |
+| 423327 | CLICSAUDE ADMINISTRADORA DE BENEFICIOS LTDA      | 1,609,987.00      | 10,746,557.64   | 567.49        |
+| 424463 | SAUDE SALV ASSISTENCIA MEDICA LTDA               | 2,918,774.03      | 18,823,594.97   | 544.91        |
 ```
 
 
@@ -203,13 +205,13 @@ A tabela resultante permite identificar facilmente as operadoras com **desempenh
 
 
 ```
-| Ranking | RegistroANS | RazaoSocial                                              | Trimestres Acima da Média | Total Despesas Acima da Média (R$) |
-|---------|------------|----------------------------------------------------------|---------------------------|------------------------------------|
-| 1       | 5711       | BRADESCO SAÚDE S.A.                                     | 3                         | 2,096,912,360,761.11              |
-| 2       | 6246       | SUL AMERICA COMPANHIA DE SEGURO SAÚDE                   | 3                         | 1,914,349,191,097.53              |
-| 3       | 326305     | AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.             | 3                         | 1,751,878,881,696.98              |
-| 4       | 359017     | NOTRE DAME INTERMÉDICA SAÚDE S.A.                       | 3                         | 1,329,980,634,625.65              |
-| 5       | 368253     | HAPVIDA ASSISTENCIA MEDICA S.A.                         | 3                         | 1,136,151,236,898.88              |
+| Ranking | RegistroANS| RazaoSocial                                | Trim. Acima da Méd | T.Despesas Acima da Média (R$) |
+|---------|------------|--------------------------------------------|--------------------|--------------------------------|
+| 1       | 5711       | BRADESCO SAÚDE S.A.                        | 3                  | 2,096,912,360,761.11           |
+| 2       | 6246       | SUL AMERICA COMPANHIA DE SEGURO SAÚDE      | 3                  | 1,914,349,191,097.53           |
+| 3       | 326305     | AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A. | 3                  | 1,751,878,881,696.98           |
+| 4       | 359017     | NOTRE DAME INTERMÉDICA SAÚDE S.A.          | 3                  | 1,329,980,634,625.65           |
+| 5       | 368253     | HAPVIDA ASSISTENCIA MEDICA S.A.            | 3                  | 1,136,151,236,898.88           |
 
 ```
 
