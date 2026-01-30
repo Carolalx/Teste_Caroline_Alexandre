@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-10%2B-blue)](https://www.postgresql.org/)
 
-> Implementação das Etapas 1, 2, 3 e 4 do teste técnico da ANS: integração com API pública, normalização, consolidação, validação, enriquecimento, análise de dados e interface web.
+> Implementação das Etapas 1 , 2, 3 e 4 do teste técnico da ANS: integração com API pública, normalização, consolidação, validação, enriquecimento, análise de dados e interface web.
 
 ---
 
@@ -11,27 +11,38 @@
 
 Este projeto implementa um pipeline de processamento de dados (ETL) dividido em quatro etapas fundamentais:
 
-1. **Integração com API da ANS (Etapa 1)**
-   - Download automatizado dos arquivos ZIP referentes aos últimos 3 trimestres disponíveis.
-   - Extração e normalização dinâmica de colunas (tratando variações como `REG_ANS` vs `RegistroANS`).
-   - Consolidação de mais de **2,1 milhões de registros** em um único CSV.
+1. **Extração (`main.py`)**
+   - Navega no FTP da ANS e identifica os 3 trimestres mais recentes.
+   - Realiza o download e extração de arquivos ZIP em memória.
+   - Consolida os dados brutos iniciais.
 
-2. **Transformação e Agregação (Etapa 2)**
-   - **Enriquecimento:** Cruzamento de dados financeiros com a base cadastral oficial da ANS via `RegistroANS`.
-   - **Saneamento:** Tratamento de escala decimal e valores nulos.
-   - **Cálculo Estatístico:** Geração de métricas de Total de Despesas, Média Trimestral e Desvio Padrão por Operadora e UF.
-   - **Resultados:** Geração do arquivo `despesas_agregadas.csv` e compactação final no ZIP solicitado.
+2. **Tratamento e Utilidades (`src/utils.py`)**
+   - **Validação de CNPJ:** Algoritmo de cálculo de dígitos verificadores para garantir a integridade dos dados.
+   - **Normalização:** Mapeia diversos nomes de colunas (ex: `REG_ANS`, `REGISTRO_OPERADORA`) para um padrão único.
+   - **Limpeza:** Converte formatos de moeda (vírgula para ponto), trata valores negativos e remove registros inconsistentes.
 
-3. **Banco de Dados e Análise SQL (Etapa 3)**
-   - Modelagem relacional no **PostgreSQL** utilizando o modelo Estrela (*Star Schema*).
-   - Implementação de integridade referencial flexível para comportar inconsistências nativas da fonte.
-   - Scripts de carga e queries analíticas para insights de mercado.
+3. **Transformação e Enriquecimento (`transform.py`)**
+   - **Cruzamento de Dados (Merge):** Combina os dados financeiros com o Relatório CADOP (Cadastro de Operadoras ativas).
+   - **Análise Estatística:** Análise Estatística: Calcula o total de despesas, média trimestral e desvio padrão por operadora.
+   - **Deduplicação Inteligente:** Identifica e corrige casos onde o mesmo CNPJ apresenta nomes diferentes, mantendo o registro mais atualizado.
 
 4. **API e Interface Web (Etapa 4)**
    - Backend em **FastAPI** fornecendo rotas para operadoras, detalhes, histórico e estatísticas.
    - Frontend em **Vue.js** exibindo tabela paginada, busca/filtro, gráficos e modal de detalhes.
 
----
+📊 **Estrutura de Saída**
+
+    Ao final da execução, o sistema gera um pacote consolidado em data/Teste_Caroline_Alexandre.zip contendo:
+
+```
+|------------------------------------|--------------------------------------------------------------------|
+|Arquivo                             |  Descrição                                                         |
+|------------------------------------|--------------------------------------------------------------------|
+|consolidado_despesas.csv            -> Dados financeiros brutos dos últimos 3 trimestres.                |
+|tabela_cadastro_operadoras_limpo.csv-> Cadastro de operadoras ativo e sanitizado.                        |
+|despesas_agregadas.csv              -> Resultado Final: Visão executiva com totais e estatísticas por UF.|
+|------------------------------------|--------------------------------------------------------------------|
+```
 
 ## **🛠 Tecnologias e Bibliotecas**
 
@@ -58,6 +69,12 @@ Teste_Caroline_Alexandre/
 │
 ├── frontend/               # ETAPA 4 (Vue.js)
 │   └── index.html
+│
+├── img/                    # ETAPA 3 (ResultadosQuery)
+│
+│
+├── postman/                # ETAPA 4
+│   └── postman_operadoras.json
 │
 ├── db/                     # ETAPA 3
 │   ├── create_tables.sql
@@ -119,29 +136,19 @@ cd frontend
 `http://127.0.0.1:8000/api/estatisticas`
 
 
-## 💡 Decisões Técnicas e Trade-offs
-
-## ETAPAS 1-3
-
-- **Tratamento de inconsistências:**
-    Durante a carga, identificou-se que 11 operadoras (ex: Registro 350141) possuíam lançamentos financeiros mas não constavam no cadastro de "Ativas". Optou-se pelo uso de LEFT JOIN e remoção de CONSTRAINTS rígidas para garantir que nenhum dado financeiro fosse perdido.
-- **Correção de Escala Decimal:** 
-    Devido ao comportamento de importação de alguns clientes SQL que ignoram o separador decimal, foi aplicado um saneamento via SQL (SET valor = valor / 100) para garantir a precisão dos trilhões para a escala correta de milhões/bilhões.
-- **Performance:** 
-    Performance: O processamento em Python utiliza o pandas com mapeamento de tipos otimizados, permitindo o tratamento de milhões de linhas em segundos em hardware convencional.
 
 ## ETAPA 4 – API e Frontend
 ``` 
-| Componente                | Escolha         | Justificativa                                            |
-|---------------------------|-----------------|----------------------------------------------------------|
-| Backend Framework         | FastAPI         | Performance, validação automática, documentação integrada|
-| Paginação                 | Offset-based    | Simples, eficiente para dataset < 2k registros           |
-| Estatísticas              | Calcular sempre | Dataset pequeno, simplicidade e consistência             |
-| Estrutura de resposta     | Dados + metadados | Facilita frontend e paginação                          |
-| Busca/Filtração           | Cliente         | Resposta instantânea, dataset pequeno                    |
-| Gerenciamento de estado   | Props/Events    | Simples, suficiente para aplicação pequena               |
-| Renderização tabela       | v-for           | Dataset pequeno, sem necessidade de virtual scroll       |
-| Erros/loading/dados vazios| Mensagens específicas e loading | Melhor UX e feedback claro               |
+| Componente                | Escolha          | Justificativa                                            |
+|---------------------------|------------------|----------------------------------------------------------|
+| Backend Framework         | FastAPI          | Performance, validação automática, documentação integrada|
+| Paginação                 | Offset-based     | Simples, eficiente para dataset < 2k registros           |
+| Estatísticas              | Calcular sempre  | Dataset pequeno, simplicidade e consistência             |
+| Estrutura de resposta     | Dados + metadados| Facilita frontend e paginação                            |
+| Busca/Filtração           | Cliente          | Resposta instantânea, dataset pequeno                    |
+| Gerenciamento de estado   | Props/Events     | Simples, suficiente para aplicação pequena               |
+| Renderização tabela       | v-for            | Dataset pequeno, sem necessidade de virtual scroll       |
+| Erros/loading/dados vazios| Mensagens específicas e loading | Melhor UX e feedback claro                |
 ```
 
 ## 📊 Funcionalidades da Interface Web
@@ -173,7 +180,7 @@ Crescimento (%) =
 ![Resultado Query1](img/query1.png)
 
 
-**2. Distribuição de Despesas po UF**
+**2. Distribuição de Despesas por UF**
 A tabela mostra os 5 estados com maiores despesas totais, considerando todas as operadoras.
 Além do total de despesas por estado, também é apresentada a média de despesas por operadora, permitindo comparar o impacto médio de cada operadora em cada UF.
 
