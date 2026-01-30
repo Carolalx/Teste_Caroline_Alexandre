@@ -151,14 +151,8 @@ Testar API
     4. Modal de detalhes da operadora, exibindo histórico de despesas (Média Trimestral e Desvio Padrão).
     5. Tratamento de erros e loading: mensagens claras e feedback visual.    
 
-## 📊 Resultados Finais
-
-- **Total de registros processados: 2.163.924** 
-- **Operadoras cadastradas: 1.110**
-- **Integridade: Dados financeiros 100% preservados, incluindo contas com valores negativos (estornos contábeis).** 
-
-## 📊 Querys
-**1. Quais as 5 operadoras com maior crescimento percentual de despesas entre - primeiro e o último trimestre analisado? - Desafio: Considere operadoras que podem não ter dados em todos os trimestres. Como tratar? Justifique.**
+## 📊 Resultados Finais - Querys - Analytics.sql
+**1. 5 operadoras com maior crescimento percentual de despesas (...)**
 
     - Identificação do primeiro trimestre e o último trimestre de cada operadora ou do dataset.
     - Calcular o valor total de despesas em cada um desses trimestres.
