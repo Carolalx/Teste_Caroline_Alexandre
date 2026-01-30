@@ -88,8 +88,8 @@ pip install -r requirements.txt
 2. Processamento de Dados (ETAPAS 1 e 2)
 
 ```bash
-python src/etapa1_ingestao.py
-python src/etapa2_enriquecimento.py
+python src/main.py #python -m src.main
+python src/transform.py
 ```
 
 
@@ -156,6 +156,47 @@ Testar API
 - **Total de registros processados: 2.163.924** 
 - **Operadoras cadastradas: 1.110**
 - **Integridade: Dados financeiros 100% preservados, incluindo contas com valores negativos (estornos contábeis).** 
+
+## 📊 Querys
+**1. Quais as 5 operadoras com maior crescimento percentual de despesas entre - primeiro e o último trimestre analisado? - Desafio: Considere operadoras que podem não ter dados em todos os trimestres. Como tratar? Justifique.**
+
+    - Identificação do primeiro trimestre e o último trimestre de cada operadora ou do dataset.
+    - Calcular o valor total de despesas em cada um desses trimestres.
+    - Calcular o crescimento percentual:
+
+Crescimento (%) = 
+\[
+\frac{\text{Valor Final} - \text{Valor Inicial}}{\text{Valor Inicial}} \times 100
+\]
+	​
+    - Tratar casos onde a operadora não tenha dado em algum trimestre:
+    - Solução: considerar somente operadoras que tenham dados em ambos os trimestres.
+    - Justificativa: sem dados em algum trimestre, o crescimento percentual não pode ser calculado corretamente.
+
+```
+| RegistroANS | RazaoSocial                                          | Despesas Iniciais | Despesas Finais   | Crescimento % |
+|------------|-----------------------------------------------------|-----------------|-----------------|---------------|
+| 423521     | EGRÉGORA ADMINISTRADORA DE BENEFICIOS S/A          | 96,000.16       | 29,510,456.87   | 30640.01      |
+| 423882     | PLAMEDH PLANOS DE SAÚDE LTDA                        | 223,267.38      | 14,790,873.93   | 6524.74       |
+| 416410     | SOCIODONTO PLANO DE ASSISTÊNCIA ODONTOLÓGICA LTDA  | 191,989.31      | 2,213,322.37    | 1052.84       |
+| 423327     | CLICSAUDE ADMINISTRADORA DE BENEFICIOS LTDA        | 1,609,987.00    | 10,746,557.64   | 567.49        |
+| 424463     | SAUDE SALV ASSISTENCIA MEDICA LTDA                 | 2,918,774.03    | 18,823,594.97   | 544.91        |
+```
+
+
+**2. Distribuição de Despesas po UF**
+A tabela mostra os 5 estados com maiores despesas totais, considerando todas as operadoras.
+Além do total de despesas por estado, também é apresentada a média de despesas por operadora, permitindo comparar o impacto médio de cada operadora em cada UF.
+```
+| UF  | Total Despesas (R$)    | Média por Operadora (R$) |
+|-----|------------------------|--------------------------|
+| SP  | 8,394,263,309,356.05   | 29,872,823,164.97        |
+| RJ  | 5,092,649,387,281.49   | 63,658,117,341.02        |
+| CE  | 1,689,021,572,325.72   | 99,354,210,136.81        |
+| MG  | 1,394,766,347,400.45   | 12,796,021,535.78        |
+| DF  | 842,064,229,320.19     | 40,098,296,634.29        |
+```
+
 
 ## 📝 Documentação da API
 
