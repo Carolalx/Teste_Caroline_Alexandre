@@ -113,6 +113,12 @@ cd frontend
 # abrir index.html no navegador (Chrome ou Firefox)
 ``` 
 
+**Testes de API**
+`http://127.0.0.1:8000/api/operadoras?page=1&limit=5`
+`http://127.0.0.1:8000/api/operadoras/{registro_ans}`
+`http://127.0.0.1:8000/api/estatisticas`
+
+
 ## 💡 Decisões Técnicas e Trade-offs
 
 ## ETAPAS 1-3

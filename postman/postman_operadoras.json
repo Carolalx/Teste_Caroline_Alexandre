@@ -1,18 +1,18 @@
 {
   "info": {
-    "name": "API Operadoras de Saúde",
+    "name": "API Operadoras de Saúde Atualizada",
     "_postman_id": "12345678-abcd-ef00-1234-56789abcdef0",
-    "description": "Coleção para testar todas as rotas da API de Operadoras de Saúde",
+    "description": "Coleção atualizada com busca global e parâmetros dinâmicos",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Listar Operadoras",
+      "name": "Listar Operadoras (Com Busca)",
       "request": {
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://127.0.0.1:8000/api/operadoras?page=1&limit=50",
+          "raw": "http://127.0.0.1:8000/api/operadoras?page=1&limit=50&q={{termo_busca}}",
           "protocol": "http",
           "host": [
             "127",
@@ -33,11 +33,15 @@
             {
               "key": "limit",
               "value": "50"
+            },
+            {
+              "key": "q",
+              "value": "{{termo_busca}}",
+              "description": "Termo para busca global"
             }
           ]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "Detalhes Operadora",
@@ -45,7 +49,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://127.0.0.1:8000/api/operadoras/515",
+          "raw": "http://127.0.0.1:8000/api/operadoras/{{registro_ans}}",
           "protocol": "http",
           "host": [
             "127",
@@ -57,19 +61,18 @@
           "path": [
             "api",
             "operadoras",
-            "515"
+            "{{registro_ans}}"
           ]
         }
-      },
-      "response": []
+      }
     },
     {
-      "name": "Histórico de Despesas Operadora",
+      "name": "Histórico de Despesas",
       "request": {
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://127.0.0.1:8000/api/operadoras/515/despesas",
+          "raw": "http://127.0.0.1:8000/api/operadoras/{{registro_ans}}/despesas",
           "protocol": "http",
           "host": [
             "127",
@@ -81,35 +84,25 @@
           "path": [
             "api",
             "operadoras",
-            "515",
+            "{{registro_ans}}",
             "despesas"
           ]
         }
-      },
-      "response": []
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "registro_ans",
+      "value": "416835",
+      "type": "string",
+      "description": "Altere este valor para testar outras operadoras"
     },
     {
-      "name": "Estatísticas Gerais",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://127.0.0.1:8000/api/estatisticas",
-          "protocol": "http",
-          "host": [
-            "127",
-            "0",
-            "0",
-            "1"
-          ],
-          "port": "8000",
-          "path": [
-            "api",
-            "estatisticas"
-          ]
-        }
-      },
-      "response": []
+      "key": "termo_busca",
+      "value": "unimed",
+      "type": "string",
+      "description": "Termo de pesquisa para a rota de listagem"
     }
   ]
 }

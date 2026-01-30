@@ -3,52 +3,105 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Operadoras de Saúde</title>
+    <title>Operadoras de Saúde - Painel Administrativo</title>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             margin: 20px;
+            background-color: #f4f7f6;
         }
 
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        /* Controles de Busca */
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input {
+            padding: 12px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #3498db;
+        }
+
+        /* Tabela */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         th,
         td {
-            border: 1px solid #ccc;
-            padding: 8px;
+            padding: 12px;
             text-align: left;
+            border-bottom: 1px solid #eee;
         }
 
         th {
-            background-color: #f4f4f4;
+            background-color: #3498db;
+            color: white;
         }
 
-        input {
-            padding: 6px;
-            width: 300px;
-            margin-top: 10px;
+        tr:hover {
+            background-color: #f9f9f9;
         }
 
-        .loading {
-            font-weight: bold;
-            margin-top: 20px;
-        }
-
+        /* Paginação */
         .pagination {
-            margin-top: 10px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
         }
 
-        .pagination button {
-            margin-right: 5px;
+        button {
+            padding: 8px 16px;
+            cursor: pointer;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: 0.3s;
         }
 
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -59,83 +112,109 @@
             background: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
+            z-index: 100;
         }
 
         .modal-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            width: 400px;
-            max-height: 80%;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 500px;
+            max-height: 80vh;
             overflow-y: auto;
+        }
+
+        .close-btn {
+            float: right;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .loading-overlay {
+            color: #3498db;
+            font-weight: bold;
+            padding: 20px;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <div id="app">
-        <h1>Operadoras de Saúde</h1>
+    <div id="app" class="container">
+        <h1>📊 Gestão de Operadoras de Saúde</h1>
 
-        <input type="text" v-model="busca" placeholder="Buscar por RegistroANS ou Razão Social" />
+        <div class="search-box">
+            <input type="text" v-model="busca" placeholder="Pesquisar por Razão Social ou ANS em toda a base..." />
+            <span v-if="loading">⏳ Carregando...</span>
+        </div>
 
-        <div v-if="loading" class="loading">Carregando dados...</div>
+        <div v-if="loading && operadoras.length === 0" class="loading-overlay">
+            Buscando dados no servidor...
+        </div>
 
-        <table v-if="!loading && operadoras.length">
+        <table v-if="operadoras.length > 0">
             <thead>
                 <tr>
-                    <th>RegistroANS</th>
+                    <th>Registro ANS</th>
                     <th>Razão Social</th>
                     <th>UF</th>
-                    <th>Ano</th>
-                    <th>Trimestre</th>
-                    <th>Valor Despesas</th>
-                    <th>Total Por Operadora</th>
-                    <th>Detalhes</th>
+                    <th>Ano/Trimestre</th>
+                    <th>Valor Despesa</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="op in operadorasFiltradas" :key="op.RegistroANS + '-' + op.Ano + '-' + op.Trimestre">
-                    <td>{{ op.RegistroANS }}</td>
+                <tr v-for="op in operadoras" :key="op.RegistroANS + op.Ano + op.Trimestre">
+                    <td><strong>{{ op.RegistroANS }}</strong></td>
                     <td>{{ op.RazaoSocial }}</td>
                     <td>{{ op.UF }}</td>
-                    <td>{{ op.Ano }}</td>
-                    <td>{{ op.Trimestre }}</td>
+                    <td>{{ op.Ano }}/{{ op.Trimestre }}º</td>
                     <td>{{ formatCurrency(op.ValorDespesas) }}</td>
-                    <td>{{ formatCurrency(op.TotalDespesas) }}</td>
-                    <td><button @click="abrirDetalhes(op.RegistroANS)">Ver</button></td>
+                    <td><button @click="abrirDetalhes(op.RegistroANS)">Detalhes</button></td>
                 </tr>
             </tbody>
         </table>
 
-        <div v-if="!loading && !operadoras.length">Nenhum registro encontrado.</div>
-
-        <div class="pagination" v-if="!loading && totalPages > 1">
-            <button @click="mudarPagina(paginaAtual-1)" :disabled="paginaAtual === 1">Anterior</button>
-            <span>Página {{ paginaAtual }} de {{ totalPages }}</span>
-            <button @click="mudarPagina(paginaAtual+1)" :disabled="paginaAtual === totalPages">Próxima</button>
+        <div v-if="!loading && operadoras.length === 0" style="text-align: center; padding: 40px;">
+            <p>Nenhum resultado encontrado para "{{ busca }}".</p>
         </div>
 
-        <h2>Distribuição de Despesas por UF</h2>
-        <canvas id="graficoUF" width="400" height="200"></canvas>
+        <div class="pagination" v-if="totalPages > 1">
+            <button @click="mudarPagina(paginaAtual - 1)" :disabled="paginaAtual === 1">Anterior</button>
+            <span>Página {{ paginaAtual }} de {{ totalPages }} (Total: {{ total }})</span>
+            <button @click="mudarPagina(paginaAtual + 1)" :disabled="paginaAtual === totalPages">Próxima</button>
+        </div>
 
-        <!-- Modal detalhes -->
+        <hr style="margin-top: 40px; border: 0; border-top: 1px solid #eee;">
+        <h2>Distribuição Geográfica (Dados Filtrados)</h2>
+        <canvas id="graficoUF" height="100"></canvas>
+
         <div class="modal" :style="{ display: modalAberto ? 'flex' : 'none' }">
             <div class="modal-content">
-                <h3>Detalhes Operadora</h3>
+                <span class="close-btn" @click="modalAberto = false">&times;</span>
+                <h3>DADOS DA OPERADORA</h3>
                 <div v-if="detalhes">
-                    <p><strong>RegistroANS:</strong> {{ detalhes.RegistroANS }}</p>
-                    <p><strong>Razão Social:</strong> {{ detalhes.RazaoSocial }}</p>
-                    <p><strong>UF:</strong> {{ detalhes.UF }}</p>
-                    <p><strong>Total Despesas:</strong> {{ formatCurrency(detalhes.TotalDespesas) }}</p>
-                    <h4>Histórico de Despesas</h4>
-                    <ul>
-                        <li v-for="(d, index) in historico" :key="index">
-                            Ano {{ d.Ano }} Trimestre {{ d.Trimestre }}: Valor {{ formatCurrency(d.ValorDespesas) }},
-                            Média {{ formatCurrency(d.MediaTrimestral) }}, Desvio {{ formatCurrency(d.DesvioPadrao) }}
-                        </li>
-                    </ul>
+                    <p><strong>Nome:</strong> {{ detalhes.RazaoSocial }}</p>
+                    <p><strong>ANS:</strong> {{ detalhes.RegistroANS }}</p>
+                    <p><strong>UF Sede:</strong> {{ detalhes.UF }}</p>
+                    <hr>
+                    <h4>Histórico de Lançamentos</h4>
+                    <table style="font-size: 0.9em;">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <li v-for="h in historico">
+                                {{ h.Ano }}/{{ h.Trimestre }}º: {{ formatCurrency(h.ValorDespesas) }}
+                            </li>
+                        </tbody>
+                    </table>
                 </div>
-                <button @click="modalAberto = false">Fechar</button>
+                <div v-else>Carregando detalhes...</div>
             </div>
         </div>
     </div>
@@ -146,108 +225,91 @@
             data: {
                 operadoras: [],
                 busca: "",
-                loading: true,
+                loading: false,
                 paginaAtual: 1,
-                limite: 50,
+                limite: 15,
                 total: 0,
                 modalAberto: false,
                 detalhes: null,
                 historico: [],
-                grafico: null
+                grafico: null,
+                debounceTimer: null
             },
             computed: {
                 totalPages() {
                     return Math.ceil(this.total / this.limite);
-                },
-                operadorasFiltradas() {
-                    if (!this.busca) return this.operadoras;
-                    const b = this.busca.toLowerCase();
-                    return this.operadoras.filter(op =>
-                        op.RazaoSocial.toLowerCase().includes(b) ||
-                        op.RegistroANS.toString().includes(b)
-                    );
                 }
             },
             watch: {
-                // Atualiza o gráfico quando a busca muda
-                operadorasFiltradas() {
-                    this.$nextTick(() => this.atualizarGrafico());
+                // Monitora a busca e aplica um atraso (debounce) para não sobrecarregar o Python
+                busca(novaBusca) {
+                    clearTimeout(this.debounceTimer);
+                    this.debounceTimer = setTimeout(() => {
+                        this.paginaAtual = 1; // Reseta para a primeira página na nova busca
+                        this.carregarOperadoras();
+                    }, 500);
                 }
             },
             methods: {
                 carregarOperadoras() {
                     this.loading = true;
-                    axios.get(`http://127.0.0.1:8000/api/operadoras?page=${this.paginaAtual}&limit=${this.limite}`)
+                    // Enviamos o termo de busca 'q' para o backend
+                    const url = `http://127.0.0.1:8000/api/operadoras?page=${this.paginaAtual}&limit=${this.limite}&q=${this.busca}`;
+
+                    axios.get(url)
                         .then(res => {
-                            const data = res.data.data;
-
-                            // Somatório por operadora
-                            const totalMap = {};
-                            data.forEach(op => {
-                                if (!totalMap[op.RegistroANS]) totalMap[op.RegistroANS] = 0;
-                                totalMap[op.RegistroANS] += op.ValorDespesas;
-                            });
-                            data.forEach(op => op.TotalDespesas = totalMap[op.RegistroANS]);
-
-                            this.operadoras = data;
+                            this.operadoras = res.data.data;
                             this.total = res.data.total;
                             this.loading = false;
-
-                            // Inicializa gráfico
                             this.$nextTick(() => this.atualizarGrafico());
                         })
                         .catch(err => {
-                            console.error("Erro ao carregar operadoras:", err);
+                            console.error("Erro na API:", err);
                             this.loading = false;
                         });
                 },
                 atualizarGrafico() {
                     const ctx = document.getElementById('graficoUF').getContext('2d');
-                    const dados = {};
+                    const dadosUF = {};
 
-                    // Usar dados filtrados
-                    this.operadorasFiltradas.forEach(op => {
-                        if (!op.UF) return;
-                        if (!dados[op.UF]) dados[op.UF] = 0;
-                        dados[op.UF] += Number(op.ValorDespesas);
+                    this.operadoras.forEach(op => {
+                        if (op.UF) {
+                            dadosUF[op.UF] = (dadosUF[op.UF] || 0) + op.ValorDespesas;
+                        }
                     });
 
                     if (this.grafico) this.grafico.destroy();
                     this.grafico = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: Object.keys(dados),
+                            labels: Object.keys(dadosUF),
                             datasets: [{
-                                label: 'Despesas por UF',
-                                data: Object.values(dados),
-                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                                borderColor: 'rgba(54, 162, 235, 1)',
-                                borderWidth: 1
+                                label: 'Despesas por Estado nesta busca (R$)',
+                                data: Object.values(dadosUF),
+                                backgroundColor: '#3498db'
                             }]
-                        },
-                        options: { scales: { y: { beginAtZero: true } } }
+                        }
                     });
                 },
                 formatCurrency(valor) {
-                    if (valor == null) return "R$ 0,00";
-                    return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
                 },
                 mudarPagina(n) {
-                    if (n < 1 || n > this.totalPages) return;
                     this.paginaAtual = n;
                     this.carregarOperadoras();
+                    window.scrollTo(0, 0);
                 },
-                abrirDetalhes(registro_ans) {
-                    axios.get(`http://127.0.0.1:8000/api/operadoras/${registro_ans}`)
+                abrirDetalhes(ans) {
+                    this.detalhes = null;
+                    this.modalAberto = true;
+                    axios.get(`http://127.0.0.1:8000/api/operadoras/${ans}`)
                         .then(res => {
                             this.detalhes = res.data;
-                            return axios.get(`http://127.0.0.1:8000/api/operadoras/${registro_ans}/despesas`);
+                            return axios.get(`http://127.0.0.1:8000/api/operadoras/${ans}/despesas`);
                         })
                         .then(res => {
                             this.historico = res.data;
-                            this.modalAberto = true;
-                        })
-                        .catch(err => console.error("Erro ao carregar detalhes:", err));
+                        });
                 }
             },
             mounted() {
