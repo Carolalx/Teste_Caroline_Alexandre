@@ -4,105 +4,110 @@ DROP TABLE IF EXISTS despesas_agregadas CASCADE;
 DROP TABLE IF EXISTS operadoras_cadastro CASCADE;
 DROP TABLE IF EXISTS normalizacao CASCADE;
 
-
--- 2. Criação da Tabela de Cadastro (Dimensão)
+------------------------------------
+--TABELA 1 -- CADASTRO DE OPERADORAS
+------------------------------------
 CREATE TABLE operadoras_cadastro (
     RegistroANS INTEGER PRIMARY KEY,  -- Chave primária
     CNPJ VARCHAR(20),
     RazaoSocial TEXT,
-    Nome_Fantasia TEXT,
     Modalidade TEXT,
-    Logradouro TEXT,
-    Numero TEXT,
-    Complemento TEXT,
-    Bairro TEXT,
-    Cidade TEXT,
-    UF CHAR(2),
-    CEP TEXT,
-    DDD TEXT,
-    Telefone TEXT,
-    Endereco_Eletronico TEXT,
-    Representante TEXT,
-    Cargo_Representante TEXT,
-    Regiao_de_Comercializacao TEXT,
-    Data_Registro_ANS DATE
+    UF CHAR(2)
 );
 
+-- Insere os novos registros em operadoras_cadastro
+INSERT INTO operadoras_cadastro (RegistroANS, CNPJ, RazaoSocial, Modalidade, UF)
+VALUES
+(477, '00000000000000', 'Operadora 477', 'Desconhecida', 'XX'),
+(321338, '00000000000000', 'Operadora 321338', 'Desconhecida', 'XX'),
+(345741, '00000000000000', 'Operadora 345741', 'Desconhecida', 'XX'),
+(346870, '00000000000000', 'Operadora 346870', 'Desconhecida', 'XX'),
+(349534, '00000000000000', 'Operadora 349534', 'Desconhecida', 'XX'),
+(350141, '00000000000000', 'Operadora 350141', 'Desconhecida', 'XX'),
+(351792, '00000000000000', 'Operadora 351792', 'Desconhecida', 'XX'),
+(418161, '00000000000000', 'Operadora 418161', 'Desconhecida', 'XX'),
+(419907, '00000000000000', 'Operadora 419907', 'Desconhecida', 'XX'),
+(423475, '00000000000000', 'Operadora 423475', 'Desconhecida', 'XX'),
+(423742, '00000000000000', 'Operadora 423742', 'Desconhecida', 'XX');
 
+ALTER TABLE consolidado_despesas
+ADD CONSTRAINT fk_consolidado_operadoras
+FOREIGN KEY (RegistroANS)
+REFERENCES operadoras_cadastro (RegistroANS);
+
+------------------------------------
+--TABELA 2 -- CONSOLIDADO DE DESPESAS
+------------------------------------
+
+-- tentativa de evitar redundância
 CREATE TABLE consolidado_despesas (
     CNPJ VARCHAR(20),
     RegistroANS INTEGER,
     Trimestre VARCHAR(5),
     Ano INTEGER,
-    ValorDespesas NUMERIC(18,2)
+    ValorDespesas NUMERIC(18,2),
+    PRIMARY KEY (RegistroANS, Trimestre, Ano)  -- Garante que não haverá duplicidade de RegistroANS no mesmo trimestre/ano
 );
 
+-- modelo de consulta vinculando dados:
+SELECT cd.RegistroANS, cd.Trimestre, cd.Ano, cd.ValorDespesas, 
+       oc.CNPJ, oc.RazaoSocial, oc.Modalidade, oc.UF
+FROM consolidado_despesas cd
+JOIN operadoras_cadastro oc ON cd.RegistroANS = oc.RegistroANS
+ORDER BY cd.RegistroANS, cd.Ano, cd.Trimestre;
+
+
+------------------------------------
+--TABELA 3 -- DESPESAS AGREGADAS
+------------------------------------
 
 CREATE TABLE despesas_agregadas (
-    RegistroANS INTEGER,
+    RegistroANS INTEGER,  -- Chave estrangeira vinculada a operadoras_cadastro
     RazaoSocial TEXT,
     UF CHAR(2),
     TotalDespesas NUMERIC(18,2),
     MediaTrimestral NUMERIC(18,2),
-    DesvioPadrao NUMERIC(18,2)
+    DesvioPadrao NUMERIC(18,2),
+    PRIMARY KEY (RegistroANS),  -- Caso cada RegistroANS seja único
+    FOREIGN KEY (RegistroANS) REFERENCES operadoras_cadastro(RegistroANS)
 );
 
+-- modelo de consulta vinculando dados:
+SELECT da.RegistroANS, da.RazaoSocial, da.UF, da.TotalDespesas, da.MediaTrimestral, da.DesvioPadrao,
+       oc.CNPJ, oc.Modalidade
+FROM despesas_agregadas da
+JOIN operadoras_cadastro oc ON da.RegistroANS = oc.RegistroANS
+ORDER BY da.RegistroANS;
 
-CREATE TABLE normalizacao (
-    id SERIAL PRIMARY KEY,  -- Chave única artificial
-    RegistroANS INTEGER,
-    Ano INTEGER,
-    Trimestre VARCHAR(5),
 
-    -- Dados de cadastro
-    CNPJ VARCHAR(20),
-    RazaoSocial TEXT,
-    Modalidade TEXT,
-    UF CHAR(2),
-    Data_Registro_ANS DATE,
 
-    -- Despesas
-    ValorDespesas NUMERIC(18,2),
-
-    -- Estatísticas agregadas
-    TotalDespesas NUMERIC(18,2),
-    MediaTrimestral NUMERIC(18,2),
-    DesvioPadrao NUMERIC(18,2)
-);
-
-WITH consolidado_agrupado AS (
-    SELECT 
-        RegistroANS,
-        Ano,
-        Trimestre,
-        SUM(ValorDespesas) AS ValorDespesas  -- Soma as duplicidades
-    FROM consolidado_despesas
-    GROUP BY RegistroANS, Ano, Trimestre
-)
-INSERT INTO normalizacao (
-    RegistroANS, Ano, Trimestre,
-    CNPJ, RazaoSocial, Modalidade, UF, Data_Registro_ANS,
-    ValorDespesas, TotalDespesas, MediaTrimestral, DesvioPadrao
-)
+------------------------------------
+-- TABELA 4 - CONSULTA JOIN DAS 3 TABELAS (normalização)
+------------------------------------
+CREATE TABLE resultado_despesas AS
 SELECT 
-    ca.RegistroANS,
-    ca.Ano,
-    ca.Trimestre,
+    oc.RegistroANS,
     oc.CNPJ,
     oc.RazaoSocial,
     oc.Modalidade,
     oc.UF,
-    oc.Data_Registro_ANS,
-    ca.ValorDespesas,
+    cd.Trimestre,
+    cd.Ano,
+    cd.ValorDespesas,
     da.TotalDespesas,
     da.MediaTrimestral,
     da.DesvioPadrao
-FROM consolidado_agrupado ca
-JOIN operadoras_cadastro oc
-    ON ca.RegistroANS = oc.RegistroANS
-LEFT JOIN despesas_agregadas da
-    ON ca.RegistroANS = da.RegistroANS
-    AND oc.UF = da.UF
-WHERE ca.ValorDespesas <> 0;  -- Remove as despesas com valor 0
+FROM 
+    operadoras_cadastro oc
+JOIN 
+    consolidado_despesas cd ON oc.RegistroANS = cd.RegistroANS
+LEFT JOIN 
+    despesas_agregadas da ON oc.RegistroANS = da.RegistroANS
+ORDER BY 
+    oc.RegistroANS, cd.Ano, cd.Trimestre;
+
+
+
+
 
 

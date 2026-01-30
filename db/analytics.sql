@@ -5,7 +5,7 @@ WITH primeiro_ultimo AS (
         RazaoSocial,
         MIN(Ano || '-' || Trimestre) AS primeiro_trimestre,
         MAX(Ano || '-' || Trimestre) AS ultimo_trimestre
-    FROM normalizacao
+    FROM resultado_despesas
     GROUP BY RegistroANS, RazaoSocial
 ),
 valores_trimestre AS (
@@ -14,7 +14,7 @@ valores_trimestre AS (
         RazaoSocial,
         ValorDespesas,
         Ano || '-' || Trimestre AS ano_trimestre
-    FROM normalizacao
+    FROM resultado_despesas
 )
 SELECT 
     p.RegistroANS,

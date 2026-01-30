@@ -169,29 +169,14 @@ Crescimento (%) =
     - Solução: considerar somente operadoras que tenham dados em ambos os trimestres.
     - Justificativa: sem dados em algum trimestre, o crescimento percentual não pode ser calculado corretamente.
 
-```
-| RegANS | RazaoSocial                                      | Despesas Iniciais | Despesas Finais | Crescimento % |
-|--------|--------------------------------------------------|-------------------|-----------------|---------------|
-| 423521 | EGRÉGORA ADMINISTRADORA DE BENEFICIOS S/A        | 96,000.16         | 29,510,456.87   | 30640.01      |
-| 423882 | PLAMEDH PLANOS DE SAÚDE LTDA                     | 223,267.38        | 14,790,873.93   | 6524.74       |
-| 416410 | SOCIODONTO PLANO DE ASSISTÊNCIA ODONTOLÓGICA LTDA| 191,989.31        | 2,213,322.37    | 1052.84       |
-| 423327 | CLICSAUDE ADMINISTRADORA DE BENEFICIOS LTDA      | 1,609,987.00      | 10,746,557.64   | 567.49        |
-| 424463 | SAUDE SALV ASSISTENCIA MEDICA LTDA               | 2,918,774.03      | 18,823,594.97   | 544.91        |
-```
+![Resultado Query1](img/query1.png)
 
 
 **2. Distribuição de Despesas po UF**
 A tabela mostra os 5 estados com maiores despesas totais, considerando todas as operadoras.
 Além do total de despesas por estado, também é apresentada a média de despesas por operadora, permitindo comparar o impacto médio de cada operadora em cada UF.
-```
-| UF  | Total Despesas (R$)    | Média por Operadora (R$) |
-|-----|------------------------|--------------------------|
-| SP  | 8,394,263,309,356.05   | 29,872,823,164.97        |
-| RJ  | 5,092,649,387,281.49   | 63,658,117,341.02        |
-| CE  | 1,689,021,572,325.72   | 99,354,210,136.81        |
-| MG  | 1,394,766,347,400.45   | 12,796,021,535.78        |
-| DF  | 842,064,229,320.19     | 40,098,296,634.29        |
-```
+
+![Resultado Query2](img/query2.png)
 
 **3. Operadoras acima da média**
 ### Ranking de Operadoras Acima da Média
@@ -203,17 +188,8 @@ Esta análise mostra quais operadoras tiveram despesas **acima da média em pelo
 
 A tabela resultante permite identificar facilmente as operadoras com **desempenho consistente acima da média** ao longo dos trimestres analisados.
 
+![Resultado Query3](img/query3.png)
 
-```
-| Ranking | RegistroANS| RazaoSocial                                | Trim. Acima da Méd | T.Despesas Acima da Média (R$) |
-|---------|------------|--------------------------------------------|--------------------|--------------------------------|
-| 1       | 5711       | BRADESCO SAÚDE S.A.                        | 3                  | 2,096,912,360,761.11           |
-| 2       | 6246       | SUL AMERICA COMPANHIA DE SEGURO SAÚDE      | 3                  | 1,914,349,191,097.53           |
-| 3       | 326305     | AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A. | 3                  | 1,751,878,881,696.98           |
-| 4       | 359017     | NOTRE DAME INTERMÉDICA SAÚDE S.A.          | 3                  | 1,329,980,634,625.65           |
-| 5       | 368253     | HAPVIDA ASSISTENCIA MEDICA S.A.            | 3                  | 1,136,151,236,898.88           |
-
-```
 
 ## 📝 Documentação da API
 
