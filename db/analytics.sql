@@ -1,4 +1,4 @@
--- #region 1. Quais as 5 operadoras com maior crescimento percentual (...)
+-- #region QUERY 1 - Quais as 5 operadoras com maior crescimento percentual (...)
 WITH primeiro_ultimo AS (
     SELECT 
         RegistroANS,
@@ -37,7 +37,7 @@ LIMIT 5;
 
 -- #endregion 
 
--- #region Distribuição de Despesas po UF
+-- #region QUERY 2 - Distribuição de Despesas po UF
 WITH despesas_por_operadora AS (
     -- Total de despesas de cada operadora por UF
     SELECT 
@@ -65,10 +65,10 @@ ORDER BY total_despesas_uf DESC
 LIMIT 5;
 -- #endregion
 
--- #region Operadoras acima da média (ranking)
+-- #region  QUERY 3 - Operadoras acima da média (ranking)
 WITH media_geral AS (
     SELECT AVG(ValorDespesas) AS media
-    FROM normalizacao
+    FROM resultado_despesas
 ),
 trimestres_acima AS (
     SELECT 
@@ -78,7 +78,7 @@ trimestres_acima AS (
         Trimestre,
         CASE WHEN ValorDespesas > (SELECT media FROM media_geral) THEN 1 ELSE 0 END AS acima_media,
         ValorDespesas
-    FROM normalizacao
+    FROM resultado_despesas
 ),
 contagem_trimestres AS (
     SELECT 

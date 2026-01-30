@@ -1,7 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pathlib import Path
 import pandas as pd
+import glob
+from pathlib import Path
 
 app = FastAPI(title="API de Operadoras")
 
@@ -20,46 +21,55 @@ app.add_middleware(
 
 # --- Caminho CSV --- #
 DATA_DIR = Path(__file__).parent.parent / "data"
-NORMALIZACAO_PATH = DATA_DIR / "normalizacao.csv"
+
+# Padrão do nome do arquivo, considerando que pode haver um sufixo
+resultado_despesas_pattern = str(DATA_DIR / "resultado_despesas*.csv")
 
 # --- Carrega CSV --- #
-normalizacao = pd.DataFrame()
+resultado_despesas = pd.DataFrame()
 
 try:
-    if not NORMALIZACAO_PATH.exists():
-        raise FileNotFoundError(f"CSV não encontrado: {NORMALIZACAO_PATH}")
+    # Procurar o arquivo que corresponde ao padrão
+    resultado_despesas_files = glob.glob(resultado_despesas_pattern)
 
-    # CSV: id, registroans, ano, trimestre, cnpj, razaosocial, modalidade, uf, data_registro_ans, valordespesas, totaldespesas, mediatrimestral, desviopadrao
-    normalizacao = pd.read_csv(NORMALIZACAO_PATH, encoding="utf-8")
+    # Verificar se encontrou o arquivo
+    if not resultado_despesas_files:
+        raise FileNotFoundError(f"CSV não encontrado no diretório: {DATA_DIR}")
+
+    # Pega o primeiro arquivo encontrado
+    RESULTADO_DESPESAS_PATH = resultado_despesas_files[0]
+    print(f"Arquivo encontrado: {RESULTADO_DESPESAS_PATH}")
+
+    # Carrega o CSV encontrado
+    resultado_despesas = pd.read_csv(RESULTADO_DESPESAS_PATH, encoding="utf-8")
 
     # --- Colunas obrigatórias --- #
     required_cols = [
-        "id", "registroans", "ano", "trimestre", "cnpj", "razaosocial",
-        "modalidade", "uf", "data_registro_ans",
+        "registroans", "cnpj", "razaosocial", "modalidade", "uf", "trimestre", "ano",
         "valordespesas", "totaldespesas", "mediatrimestral", "desviopadrao"
     ]
 
     for col in required_cols:
-        if col not in normalizacao.columns:
+        if col not in resultado_despesas.columns:
             raise ValueError(f"CSV não contém coluna obrigatória: {col}")
 
     # --- Converter colunas numéricas corretamente --- #
     num_cols = ["valordespesas", "totaldespesas",
                 "mediatrimestral", "desviopadrao"]
     for col in num_cols:
-        normalizacao[col] = (
-            normalizacao[col].astype(str)
+        resultado_despesas[col] = (
+            resultado_despesas[col].astype(str)
             .str.replace(",", "")  # remove vírgulas de milhar
             .str.replace(" ", "")  # remove espaços
-            # valores vazios para 0
             .replace({"": "0", "nan": "0"}, regex=True)
             .astype(float)
         )
 
     # Remove linhas com valor 0 em valordespesas
-    normalizacao = normalizacao[normalizacao["valordespesas"] != 0]
+    resultado_despesas = resultado_despesas[resultado_despesas["valordespesas"] != 0]
 
-    print(f"CSV carregado com sucesso! Total de linhas: {len(normalizacao)}")
+    print(
+        f"CSV carregado com sucesso! Total de linhas: {len(resultado_despesas)}")
 
 except Exception as e:
     print("Erro ao carregar CSV:", e)
@@ -69,12 +79,12 @@ except Exception as e:
 
 @app.get("/api/operadoras")
 def listar_operadoras(page: int = 1, limit: int = 50):
-    if normalizacao.empty:
+    if resultado_despesas.empty:
         raise HTTPException(status_code=500, detail="Dados não carregados")
 
     start = (page - 1) * limit
     end = start + limit
-    df_page = normalizacao.iloc[start:end]
+    df_page = resultado_despesas.iloc[start:end]
 
     data = [
         {
@@ -94,14 +104,15 @@ def listar_operadoras(page: int = 1, limit: int = 50):
     return {
         "page": page,
         "limit": limit,
-        "total": len(normalizacao),
+        "total": len(resultado_despesas),
         "data": data
     }
 
 
 @app.get("/api/operadoras/{registro_ans}")
 def detalhe_operadora(registro_ans: str):
-    df = normalizacao[normalizacao["registroans"].astype(str) == registro_ans]
+    df = resultado_despesas[resultado_despesas["registroans"].astype(
+        str) == registro_ans]
     if df.empty:
         raise HTTPException(status_code=404, detail="Operadora não encontrada")
 
@@ -124,7 +135,8 @@ def detalhe_operadora(registro_ans: str):
 
 @app.get("/api/operadoras/{registro_ans}/despesas")
 def historico_despesas(registro_ans: str):
-    df = normalizacao[normalizacao["registroans"].astype(str) == registro_ans]
+    df = resultado_despesas[resultado_despesas["registroans"].astype(
+        str) == registro_ans]
     if df.empty:
         raise HTTPException(status_code=404, detail="Operadora não encontrada")
 
@@ -144,34 +156,73 @@ def historico_despesas(registro_ans: str):
 
 @app.get("/api/estatisticas")
 def estatisticas():
-    if normalizacao.empty:
+    if resultado_despesas.empty:
         raise HTTPException(status_code=500, detail="Dados não carregados")
 
-    total = float(normalizacao["totaldespesas"].sum())
-    media = float(normalizacao["totaldespesas"].mean())
+    try:
+        # Verificando a coluna 'totaldespesas' antes da conversão:
+        print("Verificando a coluna 'totaldespesas' antes da conversão:")
+        # Exibir as primeiras linhas para diagnóstico
+        print(resultado_despesas['totaldespesas'].head())
 
-    top_5 = normalizacao.groupby("registroans").sum(
-        "totaldespesas").sort_values("totaldespesas", ascending=False).head(5)
-    top_5_list = [
-        {
-            "RegistroANS": int(row.name),
-            "RazaoSocial": str(normalizacao[normalizacao["registroans"] == row.name].iloc[0]["razaosocial"]),
-            "UF": str(normalizacao[normalizacao["registroans"] == row.name].iloc[0]["uf"]),
-            "TotalDespesas": float(row["totaldespesas"]),
+        # Garantir que a coluna 'totaldespesas' seja numérica, forçando conversão
+        resultado_despesas['totaldespesas'] = pd.to_numeric(
+            resultado_despesas['totaldespesas'], errors='coerce')
+
+        # Verificar se existem valores NaN após conversão
+        if resultado_despesas['totaldespesas'].isna().any():
+            raise ValueError(
+                "Existem valores NaN na coluna 'totaldespesas' após a conversão.")
+
+        # Verificando os dados após a conversão:
+        print("Dados após conversão da coluna 'totaldespesas':")
+        # Exibir novamente as primeiras linhas
+        print(resultado_despesas['totaldespesas'].head())
+
+        # Agora podemos calcular as estatísticas corretamente
+        total = resultado_despesas["totaldespesas"].sum()
+        media = resultado_despesas["totaldespesas"].mean()
+
+        print(f"Total de despesas: {total}")
+        print(f"Média de despesas: {media}")
+
+        # Top 5 operadoras por 'totaldespesas'
+        top_5 = resultado_despesas.groupby("registroans").agg({"totaldespesas": "sum"}).sort_values(
+            "totaldespesas", ascending=False).head(5)
+
+        # Prepare o retorno com as top 5 operadoras
+        top_5_list = [
+            {
+                "RegistroANS": int(row.name),
+                "RazaoSocial": str(resultado_despesas[resultado_despesas["registroans"] == row.name].iloc[0]["razaosocial"]),
+                "UF": str(resultado_despesas[resultado_despesas["registroans"] == row.name].iloc[0]["uf"]),
+                "TotalDespesas": float(row["totaldespesas"]),
+            }
+            for _, row in top_5.iterrows()
+        ]
+
+        return {
+            "total_despesas": total,
+            "media_despesas": media,
+            "top_5_operadoras": top_5_list,
         }
-        for _, row in top_5.iterrows()
-    ]
 
-    return {
-        "total_despesas": total,
-        "media_despesas": media,
-        "top_5_operadoras": top_5_list,
-    }
+    except ValueError as ve:
+        # Erro ao detectar NaNs ou falhas na conversão
+        print("Erro de valor na conversão de dados:", ve)
+        raise HTTPException(
+            status_code=500, detail=f"Erro de valor na conversão de dados: {str(ve)}")
+
+    except Exception as e:
+        # Erro geral
+        print("Erro durante o cálculo das estatísticas:", str(e))
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao calcular estatísticas: {str(e)}")
 
 
 @app.get("/api/operadoras/todos")
 def listar_todas_operadoras():
-    if normalizacao.empty:
+    if resultado_despesas.empty:
         raise HTTPException(status_code=500, detail="Dados não carregados")
 
     return [
@@ -183,5 +234,5 @@ def listar_todas_operadoras():
             "Trimestre": str(row["trimestre"]),
             "ValorDespesas": float(row["valordespesas"])
         }
-        for _, row in normalizacao.iterrows()
+        for _, row in resultado_despesas.iterrows()
     ]

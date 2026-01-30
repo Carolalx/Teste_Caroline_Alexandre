@@ -101,7 +101,7 @@
                     <td>{{ op.Ano }}</td>
                     <td>{{ op.Trimestre }}</td>
                     <td>{{ formatCurrency(op.ValorDespesas) }}</td>
-                    <td>{{ formatCurrency(op.TotalPorOperadora) }}</td>
+                    <td>{{ formatCurrency(op.TotalDespesas) }}</td>
                     <td><button @click="abrirDetalhes(op.RegistroANS)">Ver</button></td>
                 </tr>
             </tbody>
@@ -187,7 +187,7 @@
                                 if (!totalMap[op.RegistroANS]) totalMap[op.RegistroANS] = 0;
                                 totalMap[op.RegistroANS] += op.ValorDespesas;
                             });
-                            data.forEach(op => op.TotalPorOperadora = totalMap[op.RegistroANS]);
+                            data.forEach(op => op.TotalDespesas = totalMap[op.RegistroANS]);
 
                             this.operadoras = data;
                             this.total = res.data.total;

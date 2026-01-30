@@ -113,11 +113,6 @@ cd frontend
 # abrir index.html no navegador (Chrome ou Firefox)
 ``` 
 
-Testar API
-    - Swagger: http://127.0.0.1:8000/docs
-    - Redoc: https://127.0.0.1:8000/redoc
-
-
 ## 💡 Decisões Técnicas e Trade-offs
 
 ## ETAPAS 1-3
