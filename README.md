@@ -197,6 +197,27 @@ Além do total de despesas por estado, também é apresentada a média de despes
 | DF  | 842,064,229,320.19     | 40,098,296,634.29        |
 ```
 
+**3. Operadoras acima da média**
+### Ranking de Operadoras Acima da Média
+
+Esta análise mostra quais operadoras tiveram despesas **acima da média em pelo menos 1 trimestre** e cria um ranking baseado em dois critérios:
+
+1. **Número de trimestres acima da média** – quanto maior, melhor o desempenho da operadora.
+2. **Total de despesas acima da média** – usado para desempatar entre operadoras com o mesmo número de trimestres acima da média.
+
+A tabela resultante permite identificar facilmente as operadoras com **desempenho consistente acima da média** ao longo dos trimestres analisados.
+
+
+```
+| Ranking | RegistroANS | RazaoSocial                                              | Trimestres Acima da Média | Total Despesas Acima da Média (R$) |
+|---------|------------|----------------------------------------------------------|---------------------------|------------------------------------|
+| 1       | 5711       | BRADESCO SAÚDE S.A.                                     | 3                         | 2,096,912,360,761.11              |
+| 2       | 6246       | SUL AMERICA COMPANHIA DE SEGURO SAÚDE                   | 3                         | 1,914,349,191,097.53              |
+| 3       | 326305     | AMIL ASSISTÊNCIA MÉDICA INTERNACIONAL S.A.             | 3                         | 1,751,878,881,696.98              |
+| 4       | 359017     | NOTRE DAME INTERMÉDICA SAÚDE S.A.                       | 3                         | 1,329,980,634,625.65              |
+| 5       | 368253     | HAPVIDA ASSISTENCIA MEDICA S.A.                         | 3                         | 1,136,151,236,898.88              |
+
+```
 
 ## 📝 Documentação da API
 
