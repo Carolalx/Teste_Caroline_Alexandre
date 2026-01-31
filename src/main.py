@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import io
 import re
-import src.utils as utils  # Importando o utils corretamente
+import src.utils as utils
 
 # Configurações de Caminho
 BASE_URL = "https://dadosabertos.ans.gov.br/FTP/PDA/demonstracoes_contabeis/"
@@ -94,7 +94,7 @@ def download_and_process():
         # Caso existam duplicatas, mantém a primeira ocorrência e soma os valores das despesas
         final_df = final_df.groupby(['RegistroANS', 'Trimestre', 'Ano'], as_index=False).agg({
             'CNPJ': 'first',  # Mantém o primeiro CNPJ
-            'RazaoSocial': 'first',  # Mantém a primeira RazaoSocial
+            'RazaoSocial': 'first',  # Mantém a Razão Social mais recente
             'ValorDespesas': 'sum',  # Soma as despesas para registros duplicados
             'VL_SALDO_INICIAL': 'sum'  # Soma os saldos iniciais
         })
