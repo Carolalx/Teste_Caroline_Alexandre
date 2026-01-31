@@ -16,6 +16,7 @@ CREATE TABLE operadoras_cadastro (
 );
 
 -- Insere os novos registros em operadoras_cadastro
+--registros que constavam em outras tabelas e não constavam na operadoras_cadastro, causando conflito de chave
 INSERT INTO operadoras_cadastro (RegistroANS, CNPJ, RazaoSocial, Modalidade, UF)
 VALUES
 (477, '00000000000000', 'Operadora 477', 'Desconhecida', 'XX'),
@@ -82,7 +83,7 @@ ORDER BY da.RegistroANS;
 
 
 ------------------------------------
--- TABELA 4 - CONSULTA JOIN DAS 3 TABELAS (normalização)
+-- TABELA 4 - CONSULTA JOIN DAS 3 TABELAS
 ------------------------------------
 CREATE TABLE resultado_despesas AS
 SELECT 

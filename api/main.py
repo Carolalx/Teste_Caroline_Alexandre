@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- CAMINHO CSV --- #
+# --- CAMINHO CSV com possibilidade de sufixo ao exportar do DBeaver--- #
 DATA_DIR = Path(__file__).parent.parent / "data"
 resultado_despesas_pattern = str(DATA_DIR / "resultado_despesas*.csv")
 
@@ -67,7 +67,7 @@ except Exception as e:
     print(f"ERRO CRÍTICO NO BACKEND: {e}")
 
 
-# --- ROTAS EXISTENTES --- #
+# --- ROTAS OPERADORAS --- #
 
 @app.get("/api/operadoras")
 def listar_operadoras(page: int = 1, limit: int = 50, q: str = None):
@@ -160,7 +160,7 @@ def historico_despesas(registro_ans: str):
     ]
 
 
-# --- NOVAS ROTAS DE ESTATÍSTICAS --- #
+# --- ROTAS DE ESTATÍSTICAS --- #
 
 # 1. Operadoras com Maior Crescimento Percentual
 @app.get("/api/estatisticas/crescimento")
@@ -195,7 +195,7 @@ def obter_crescimento_percentual():
     ).rename(columns={'valordespesas': 'valordespesas_final'}).drop(columns=['periodo'])
 
     # 5. Cálculo com a mesma lógica do SQL (* 100)
-    # Usando .loc para evitar avisos de SettingWithCopy e tratar divisão por zero
+    # tratando a divisão por zero
     mask = primeiro_ultimo['valordespesas_inicial'] != 0
     primeiro_ultimo['crescimento_percentual'] = 0.0
 

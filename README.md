@@ -15,7 +15,7 @@ Este projeto implementa um pipeline de processamento de dados (ETL) dividido em 
    - Navega no FTP da ANS e identifica os 3 trimestres mais recentes.
    - Realiza o download e extração de arquivos ZIP em memória.
    - Consolida os dados brutos iniciais.
-    🚨 Os arquivos baixados nao possuem CNPJ (...)
+    🚨 Os arquivos baixados nao possuem o campo CNPJ, então, compilei em arquivo unico com a coluna CNPJ vazia para enriquecimento posterior.
 
 2. **Tratamento e Utilidades (`src/utils.py`)**
    - **Validação de CNPJ:** Algoritmo de cálculo de dígitos verificadores para garantir a integridade dos dados.
@@ -23,7 +23,7 @@ Este projeto implementa um pipeline de processamento de dados (ETL) dividido em 
    - **Limpeza:** Converte formatos de moeda (vírgula para ponto), trata valores negativos e remove registros inconsistentes.
 
 3. **Transformação e Enriquecimento (`transform.py`)**
-   🚨 Percebendo que o campo comum entre os arquivos é o Registro ANS, este foi priorizado até o fim do projeto.
+   🚨 Percebendo que o campo comum entre os arquivos é o Registro ANS, este foi priorizado até o fim do projeto. E, utilizando este campo como ancora, foi possivel buscar o CNPJ faltante na etapa anterior.
    - **Cruzamento de Dados (Merge):** Combina os dados financeiros com o Relatório CADOP (Cadastro de Operadoras ativas).
    - **Análise Estatística:** Análise Estatística: Calcula o total de despesas, média trimestral e desvio padrão por operadora.
    - **Deduplicação Inteligente:** Identifica e corrige casos onde o mesmo CNPJ apresenta nomes diferentes, mantendo o registro mais atualizado.
