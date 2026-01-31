@@ -157,6 +157,7 @@
             <thead>
                 <tr>
                     <th>Registro ANS</th>
+                    <th>CNPJ</th>
                     <th>Razão Social</th>
                     <th>UF</th>
                     <th>Ano/Trimestre</th>
@@ -167,6 +168,7 @@
             <tbody>
                 <tr v-for="op in operadoras" :key="op.RegistroANS + op.Ano + op.Trimestre">
                     <td><strong>{{ op.RegistroANS }}</strong></td>
+                    <td>{{ op.CNPJ }}</td>
                     <td>{{ op.RazaoSocial }}</td>
                     <td>{{ op.UF }}</td>
                     <td>{{ op.Ano }}/{{ op.Trimestre }}º</td>

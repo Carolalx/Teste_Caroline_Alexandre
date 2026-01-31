@@ -3,7 +3,7 @@ import requests
 import io
 import os
 import zipfile
-import utils  # Se estiver na mesma pasta src, importe apenas 'utils'
+import utils
 import logging
 import urllib3
 

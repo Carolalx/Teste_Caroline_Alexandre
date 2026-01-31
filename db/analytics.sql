@@ -13,7 +13,9 @@ valores_trimestre AS (
         RegistroANS,
         RazaoSocial,
         ValorDespesas,
-        Ano || '-' || Trimestre AS ano_trimestre
+        Ano || '-' || Trimestre AS ano_trimestre,
+        Ano,
+        Trimestre
     FROM resultado_despesas
 )
 SELECT 
@@ -34,6 +36,7 @@ JOIN valores_trimestre v_fim
 WHERE v_ini.ValorDespesas <> 0  -- evita divisão por zero
 ORDER BY Crescimento_Percentual DESC
 LIMIT 5;
+
 
 -- #endregion 
 

@@ -89,6 +89,75 @@
           ]
         }
       }
+    },
+    {
+      "name": "Top 5 Operadoras com Maior Crescimento Percentual",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/estatisticas/crescimento",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "estatisticas",
+            "crescimento"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Distribuição de Despesas por UF",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/estatisticas/despesas_uf",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "estatisticas",
+            "despesas_uf"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Operadoras Acima da Média de Despesas",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/estatisticas/acima_media",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "estatisticas",
+            "acima_media"
+          ]
+        }
+      }
     }
   ],
   "variable": [

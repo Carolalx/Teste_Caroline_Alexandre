@@ -15,6 +15,7 @@ Este projeto implementa um pipeline de processamento de dados (ETL) dividido em 
    - Navega no FTP da ANS e identifica os 3 trimestres mais recentes.
    - Realiza o download e extração de arquivos ZIP em memória.
    - Consolida os dados brutos iniciais.
+    🚨 Os arquivos baixados nao possuem CNPJ (...)
 
 2. **Tratamento e Utilidades (`src/utils.py`)**
    - **Validação de CNPJ:** Algoritmo de cálculo de dígitos verificadores para garantir a integridade dos dados.
@@ -22,17 +23,14 @@ Este projeto implementa um pipeline de processamento de dados (ETL) dividido em 
    - **Limpeza:** Converte formatos de moeda (vírgula para ponto), trata valores negativos e remove registros inconsistentes.
 
 3. **Transformação e Enriquecimento (`transform.py`)**
+   🚨 Percebendo que o campo comum entre os arquivos é o Registro ANS, este foi priorizado até o fim do projeto.
    - **Cruzamento de Dados (Merge):** Combina os dados financeiros com o Relatório CADOP (Cadastro de Operadoras ativas).
    - **Análise Estatística:** Análise Estatística: Calcula o total de despesas, média trimestral e desvio padrão por operadora.
    - **Deduplicação Inteligente:** Identifica e corrige casos onde o mesmo CNPJ apresenta nomes diferentes, mantendo o registro mais atualizado.
 
-4. **API e Interface Web (Etapa 4)**
-   - Backend em **FastAPI** fornecendo rotas para operadoras, detalhes, histórico e estatísticas.
-   - Frontend em **Vue.js** exibindo tabela paginada, busca/filtro, gráficos e modal de detalhes.
-
 📊 **Estrutura de Saída**
 
-    Ao final da execução, o sistema gera um pacote consolidado em data/Teste_Caroline_Alexandre.zip contendo:
+    Todo o projeto foi 
 
 ```
 |------------------------------------|--------------------------------------------------------------------|
@@ -44,14 +42,20 @@ Este projeto implementa um pipeline de processamento de dados (ETL) dividido em 
 |------------------------------------|--------------------------------------------------------------------|
 ```
 
+4. **API e Interface Web (Etapa 4)**
+    🚨 Este foi meu primeiro contato com Vue.js, dependeu de muita pesquisa e do apoio de IA para o desenvolvimento
+   - Backend em **FastAPI** fornecendo rotas para operadoras, detalhes, histórico e estatísticas.
+   - Frontend em **Vue.js** exibindo tabela paginada, busca/filtro, gráficos e modal de detalhes.
+
 ## **🛠 Tecnologias e Bibliotecas**
 
 - **Linguagem:** Python 3.12, JavaScript (Vue.js 2)
 - **Bibliotecas Python:** `pandas`, `fastapi`, `uvicorn`, `pydantic`, `requests`
 - **Bibliotecas JS:** `axios`, `vue`, `chart.js`
-- **Banco de Dados:** PostgreSQL > 10 (opcional para Etapa 4)
+- **Banco de Dados:** PostgreSQL > 10 
+- **Ferramenta de Banco de Dados:** [DBeaver](https://dbeaver.io/)
 - **Modelagem:** Relacional com Chaves Estrangeiras (FK)
-
+![Diagram](img/diagram.png)
 ---
 
 ## **📂 Estrutura de Pastas**
@@ -101,7 +105,6 @@ pip install -r requirements.txt
 
 ```
 
-
 2. Processamento de Dados (ETAPAS 1 e 2)
 
 ```bash
@@ -109,13 +112,10 @@ python src/main.py #python -m src.main
 python src/transform.py
 ```
 
-
 3. Banco de Dados (ETAPA 3)
     - Execute o script db/create_tables.sql no PostgreSQL.
     - Importe os CSVs (Cadastro primeiro, depois Despesas).
-    - Execute updates de correção de escala contidos em db/load_data.sql.
-    - O CSV consolidado será gerado em:
-    `data/despesas_agregadas.csv`
+    - Exporte `resultado_despesas.csv` para a pasta `data`.  
 
 4. API e Frontend (ETAPA 4)
 Rodar backend
@@ -129,12 +129,6 @@ Abrir frontend
 cd frontend
 # abrir index.html no navegador (Chrome ou Firefox)
 ``` 
-
-**Testes de API**
-`http://127.0.0.1:8000/api/operadoras?page=1&limit=5`
-`http://127.0.0.1:8000/api/operadoras/{registro_ans}`
-`http://127.0.0.1:8000/api/estatisticas`
-
 
 
 ## ETAPA 4 – API e Frontend
@@ -154,13 +148,13 @@ cd frontend
 ## 📊 Funcionalidades da Interface Web
 
     1. Tabela paginada de operadoras com RegistroANS, Razão Social, UF e TotalDespesas.
-    2. Busca instantânea no cliente por RegistroANS ou Razão Social.
+    2. Busca instantânea no cliente por RegistroANS, CNPJ ou Razão Social.
     3. Gráfico de distribuição de despesas por UF usando Chart.js.
     4. Modal de detalhes da operadora, exibindo histórico de despesas (Média Trimestral e Desvio Padrão).
     5. Tratamento de erros e loading: mensagens claras e feedback visual.    
 
 ## 📊 Resultados Finais - Querys - Analytics.sql
-    - Optou-se por manter o valor como dado bruto para evitar possiveis conflitos com conversão em moeda ou algo semelhante.
+    - Optou-se por manter valores monetários como 'dado bruto' para evitar possiveis conflitos com conversão em moeda ou algo semelhante.
     
 **1. 5 operadoras com maior crescimento percentual de despesas (...)**
 
@@ -201,8 +195,18 @@ A tabela resultante permite identificar facilmente as operadoras com **desempenh
 
 ## 📝 Documentação da API
 
-**Coleção Postman incluída:** `/docs/postman_collection.json.`
+- **Coleção Postman incluída:** `/docs/postman_collection.json.`
 Contém exemplos de requisições para todas as rotas, incluindo paginação, filtros, detalhes e estatísticas.
+
+- **Testes de API**
+`http://127.0.0.1:8000/api/operadoras?page=1&limit=5`
+`http://127.0.0.1:8000/api/operadoras?page=1&limit=50&q={{termo_busca}}`
+`http://127.0.0.1:8000/api/operadoras/{{registro_ans}}`
+`http://127.0.0.1:8000/api/operadoras/{{registro_ans}}/despesas`
+`http://127.0.0.1:8000/api/estatisticas/crescimento`
+`http://127.0.0.1:8000/api/estatisticas/despesas_uf`
+`http://127.0.0.1:8000/api/estatisticas/acima_media`
+
 
 ## 👩‍💻 Autora
 - Caroline Alexandre  
