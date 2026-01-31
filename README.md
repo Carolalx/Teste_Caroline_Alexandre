@@ -145,7 +145,7 @@ cd frontend
 | Erros/loading/dados vazios| Mensagens específicas e loading | Melhor UX e feedback claro                |
 ```
 
-## 📊 Funcionalidades da Interface Web
+## 🌐 Funcionalidades da Interface Web
 
     1. Tabela paginada de operadoras com RegistroANS, Razão Social, UF e TotalDespesas.
     2. Busca instantânea no cliente por RegistroANS, CNPJ ou Razão Social.
