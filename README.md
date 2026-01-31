@@ -27,10 +27,7 @@ Este projeto implementa um pipeline de processamento de dados (ETL) dividido em 
    - **Cruzamento de Dados (Merge):** Combina os dados financeiros com o Relatório CADOP (Cadastro de Operadoras ativas).
    - **Análise Estatística:** Análise Estatística: Calcula o total de despesas, média trimestral e desvio padrão por operadora.
    - **Deduplicação Inteligente:** Identifica e corrige casos onde o mesmo CNPJ apresenta nomes diferentes, mantendo o registro mais atualizado.
-
-📊 **Estrutura de Saída**
-
-    Todo o projeto foi 
+   - **Compactação dos três arquivos em:** `Teste_Caroline_Alexandre.zip`
 
 ```
 |------------------------------------|--------------------------------------------------------------------|
@@ -199,12 +196,12 @@ A tabela resultante permite identificar facilmente as operadoras com **desempenh
 Contém exemplos de requisições para todas as rotas, incluindo paginação, filtros, detalhes e estatísticas.
 
 - **Testes de API**
-`http://127.0.0.1:8000/api/operadoras?page=1&limit=5`
-`http://127.0.0.1:8000/api/operadoras?page=1&limit=50&q={{termo_busca}}`
-`http://127.0.0.1:8000/api/operadoras/{{registro_ans}}`
-`http://127.0.0.1:8000/api/operadoras/{{registro_ans}}/despesas`
-`http://127.0.0.1:8000/api/estatisticas/crescimento`
-`http://127.0.0.1:8000/api/estatisticas/despesas_uf`
+`http://127.0.0.1:8000/api/operadoras?page=1&limit=5`<br>
+`http://127.0.0.1:8000/api/operadoras?page=1&limit=50&q={{termo_busca}}`<br>
+`http://127.0.0.1:8000/api/operadoras/{{registro_ans}}`<br>
+`http://127.0.0.1:8000/api/operadoras/{{registro_ans}}/despesas`<br>
+`http://127.0.0.1:8000/api/estatisticas/crescimento`<br>
+`http://127.0.0.1:8000/api/estatisticas/despesas_uf`<br>
 `http://127.0.0.1:8000/api/estatisticas/acima_media`
 
 
