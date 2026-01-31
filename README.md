@@ -2,7 +2,6 @@
 
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-10%2B-blue)](https://www.postgresql.org/)
-![Public Repos](https://img.shields.io/github/public-repos/Carolalx?style=flat-square)
 ![GitHub top language](https://img.shields.io/github/languages/top/Carolalx/Teste_Caroline_Alexandre?color=blue&style=flat-square)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Carolalx/Teste_Caroline_Alexandre?style=flat-square)
 
